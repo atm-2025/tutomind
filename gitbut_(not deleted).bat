@@ -1,11 +1,11 @@
 @echo off
 cd /d "%~dp0"
 
-REM ====== CONFIGURE ======
+REM ===== CONFIG =====
 set REMOTE_URL=https://github.com/atm-2025/tutomind
 set BRANCH=main
 
-REM ====== INIT IF NEEDED ======
+REM ===== INIT IF NEEDED =====
 if not exist ".git" (
     echo [INFO] Git not initialized. Initializing...
     git init
@@ -13,17 +13,16 @@ if not exist ".git" (
     git branch -M %BRANCH%
 )
 
-REM ====== ADD NEW & MODIFIED FILES ONLY ======
-echo [INFO] Adding new and modified files only...
-git add .
+REM ===== ADD ALL CHANGES INCLUDING DELETIONS =====
+git add -A
 
-REM ====== UNSTAGE DELETED FILES SO THEY WON'T BE COMMITTED ======
+REM ===== REMOVE DELETIONS FROM STAGING AREA =====
 for /f "delims=" %%f in ('git ls-files --deleted') do (
-    echo [INFO] Ignoring deletion of: %%f
-    git reset HEAD "%%f"
+    echo [INFO] Unstaging deletion: %%f
+    git reset HEAD -- "%%f"
 )
 
-REM ====== COMMIT WITH TIMESTAMP ======
+REM ===== COMMIT =====
 for /f %%i in ('powershell -command "Get-Date -Format yyyy-MM-dd_HH-mm-ss"') do set timestamp=%%i
 
 git commit -m "Auto commit %timestamp%" 2>nul
@@ -34,7 +33,7 @@ if %ERRORLEVEL% NEQ 0 (
     exit /b
 )
 
-REM ====== PUSH TO GITHUB ======
+REM ===== PUSH =====
 echo [INFO] Pushing to GitHub...
 git push -u origin %BRANCH%
 
