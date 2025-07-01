@@ -13,29 +13,31 @@ if not exist ".git" (
     git branch -M %BRANCH%
 )
 
-REM ===== ADD ALL CHANGES INCLUDING DELETIONS =====
-git add -A
-
-REM ===== REMOVE DELETIONS FROM STAGING AREA =====
-for /f "delims=" %%f in ('git ls-files --deleted') do (
-    echo [INFO] Unstaging deletion: %%f
-    git reset HEAD -- "%%f"
+REM ===== ONLY STAGE MODIFIED FILES =====
+for /f "delims=" %%f in ('git ls-files -m') do (
+    echo [MODIFIED] %%f
+    git add "%%f"
 )
 
-REM ===== COMMIT =====
-for /f %%i in ('powershell -command "Get-Date -Format yyyy-MM-dd_HH-mm-ss"') do set timestamp=%%i
+REM ===== ONLY STAGE NEW FILES (not ignored) =====
+for /f "delims=" %%f in ('git ls-files -o --exclude-standard') do (
+    echo [NEW] %%f
+    git add "%%f"
+)
 
-git commit -m "Auto commit %timestamp%" 2>nul
-
-if %ERRORLEVEL% NEQ 0 (
+REM ===== COMMIT IF ANYTHING IS STAGED =====
+git diff --cached --quiet
+IF %ERRORLEVEL%==0 (
     echo [INFO] Nothing to commit.
     pause
     exit /b
 )
 
+for /f %%i in ('powershell -command "Get-Date -Format yyyy-MM-dd_HH-mm-ss"') do set timestamp=%%i
+git commit -m "Auto commit %timestamp%"
+
 REM ===== PUSH =====
-echo [INFO] Pushing to GitHub...
 git push -u origin %BRANCH%
 
-echo [SUCCESS] Changes pushed (deletions ignored).
+echo [SUCCESS] Changes pushed (no deletions).
 pause
