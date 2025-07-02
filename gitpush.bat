@@ -1,4 +1,16 @@
 @echo off
+setlocal enabledelayedexpansion
+
+set PASSWORD=bro
+
+set /p USER_INPUT=Enter password to proceed: 
+if "!USER_INPUT!" NEQ "!PASSWORD!" (
+    echo Incorrect password.
+    pause
+    exit /b
+)
+
+echo Access granted.
 cd /d "%~dp0"
 
 REM ========= CONFIG ==========
